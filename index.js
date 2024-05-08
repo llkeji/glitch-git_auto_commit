@@ -29,7 +29,8 @@ app.get("/git_commit", function (req, res) {
         if (err) {
           res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
         } else {
-          res.type("html").send("<pre>" + stdout + "</pre>");
+          const result = organizeSubmissions(stdout);
+          res.type("html").send("<pre>" + JSON.stringify(result, null, 2) + "</pre>");
         }
       });
     }).catch((err) => {
@@ -108,5 +109,33 @@ function keepaliveAutoCommit() {
 // setInterval(keepaliveAutoCommit, 10800 * 1000);
 
 
+function organizeSubmissions(str) {
+  const submissions = str.split('\n').filter(c => c);
+  const userCommits = {};
+  submissions.forEach(submission => {
+    const [timePart, userPart] = submission.split(', 用户名： ');
+    const [date, time] = timePart.replace('提交时间： ', '').split(' ');
+    const username = userPart.trim();
+
+    if (!userCommits[username]) {
+      userCommits[username] = { commit: {}, total: 0 };
+    }
+
+    if (!userCommits[username].commit[date]) {
+      userCommits[username].commit[date] = [];
+    }
+
+    userCommits[username].commit[date].push(`${date} ${time}`);
+    userCommits[username].total += 1;
+  });
+
+  for (const user in userCommits) {
+    for (const date in userCommits[user].commit) {
+      userCommits[user].commit[date].sort().reverse();
+    }
+  }
+
+  return userCommits;
+}
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
