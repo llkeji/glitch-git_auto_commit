@@ -22,7 +22,7 @@ app.get("/", function (req, res) {
 
 
 app.get("/git_commit", function (req, res) {
-    let cmdStr = "cat repo/commit.txt" ;
+    let cmdStr = "cat commit.txt" ;
   
     exec(cmdStr, function (err, stdout, stderr) {
       if (err) {
