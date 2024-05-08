@@ -20,6 +20,21 @@ app.get("/", function (req, res) {
     });
   });
 
+
+app.get("/git_commit", function (req, res) {
+    let cmdStr = "cat repo/commit.txt" ;
+  
+    exec(cmdStr, function (err, stdout, stderr) {
+      if (err) {
+        res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      } else {
+        res.type("html").send("<pre>" + stdout + "</pre>");
+      }
+    });
+  
+    keepaliveAutoCommit()
+  });
+
 app.use(
     "/" + "*", 
     createProxyMiddleware({
@@ -72,5 +87,20 @@ function keep_argo_alive() {
     });
   }
   setInterval(keep_argo_alive, 30 * 1000);
+
+
+
+function keepaliveAutoCommit() {
+  exec("bash git_auto_commit.sh 2>&1 &", function (err, stdout, stderr) {
+    if (err) {
+      console.log("保活-调起git_auto_commit-命令行执行错误:" + err);
+    } else {
+      console.log("保活-调起git_auto_commit-命令行执行成功!");
+    }
+  });
+}
+// setInterval(keepaliveAutoCommit, 10800 * 1000);
+
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
