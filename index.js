@@ -22,11 +22,8 @@ app.get("/", function (req, res) {
 
 
 app.get("/git_commit", function (req, res) {
-    keepaliveAutoCommit()
-
-
-    setTimeout(() => {
-      let cmdStr = "cat commitAll.txt" ;
+    keepaliveAutoCommit().then(r => {
+      let cmdStr = "cat /tmp/commitAll.txt" ;
   
       exec(cmdStr, function (err, stdout, stderr) {
         if (err) {
@@ -35,7 +32,9 @@ app.get("/git_commit", function (req, res) {
           res.type("html").send("<pre>" + stdout + "</pre>");
         }
       });
-    }, 1000);
+    }).catch((err) => {
+      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+    })
   });
 
 app.use(
@@ -94,12 +93,16 @@ function keep_argo_alive() {
 
 
 function keepaliveAutoCommit() {
-  exec("bash git_auto_commit.sh 2>&1 &", function (err, stdout, stderr) {
-    if (err) {
-      console.log("保活-调起git_auto_commit-命令行执行错误:" + err);
-    } else {
-      console.log("保活-调起git_auto_commit-命令行执行成功!");
-    }
+  return new Promise((resolve, reject) => {
+    exec("bash git_auto_commit.sh 2>&1 &", function (err, stdout, stderr) {
+      if (err) {
+        console.error("保活-调起git_auto_commit-命令行执行错误:", err);
+        reject(err);
+      } else {
+        console.log("保活-调起git_auto_commit-命令行执行成功!");
+        resolve(true);
+      }
+    });
   });
 }
 // setInterval(keepaliveAutoCommit, 10800 * 1000);
