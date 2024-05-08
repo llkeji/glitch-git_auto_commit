@@ -6,7 +6,7 @@ IFS=',' read -ra GIT_TOKENS <<< "${GIT_TOKEN}"
 IFS=',' read -ra GIT_USERNAMES <<< "${GIT_USERNAME}"
 IFS=',' read -ra GIT_EMAILS <<< "${GIT_EMAIL}"
 DATE=$(TZ='Asia/Shanghai' date "+%Y-%m-%d %H:%M:%S")
-
+MAX_SIZE=512000
 # 循环处理每个仓库
 for i in "${!GIT_URLS[@]}"; do
 
@@ -29,6 +29,9 @@ for i in "${!GIT_URLS[@]}"; do
   
   # 创建或更新commit.txt文件
   if [ -f commit.txt ]; then 
+    if [ $(stat -c%s "commit.txt") -gt $MAX_SIZE ]; then
+      > commit.txt
+    fi
     sed -i "1i提交时间： $DATE, 用户名： ${USERNAME}" commit.txt
   else
     echo 提交时间： $DATE, 用户名： ${USERNAME} >> commit.txt
@@ -36,6 +39,9 @@ for i in "${!GIT_URLS[@]}"; do
 
   # 创建或更新commitAll.txt文件
   if [ -f /app/commitAll.txt ]; then 
+    if [ $(stat -c%s "/app/commitAll.txt") -gt $MAX_SIZE ]; then
+      > /app/commitAll.txt
+    fi
     sed -i "1i提交时间： $DATE, 用户名： ${USERNAME}" /app/commitAll.txt
   else
     echo 提交时间： $DATE, 用户名： ${USERNAME} >> /app/commitAll.txt
@@ -57,15 +63,3 @@ for i in "${!GIT_URLS[@]}"; do
   cd ~/
   
 done
-
-
-generate_autodel() {
-  cat > auto_del.sh << EOF
-while true; do
-  rm -rf /app/.git
-  sleep 5
-done
-EOF
-}
-
-generate_autodel
