@@ -22,17 +22,20 @@ app.get("/", function (req, res) {
 
 
 app.get("/git_commit", function (req, res) {
-    let cmdStr = "cat commit.txt" ;
-  
-    exec(cmdStr, function (err, stdout, stderr) {
-      if (err) {
-        res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
-      } else {
-        res.type("html").send("<pre>" + stdout + "</pre>");
-      }
-    });
-  
     keepaliveAutoCommit()
+
+
+    setTimeout(() => {
+      let cmdStr = "cat commitAll.txt" ;
+  
+      exec(cmdStr, function (err, stdout, stderr) {
+        if (err) {
+          res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+        } else {
+          res.type("html").send("<pre>" + stdout + "</pre>");
+        }
+      });
+    }, 1000);
   });
 
 app.use(

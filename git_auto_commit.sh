@@ -10,29 +10,35 @@ DATE=$(TZ='Asia/Shanghai' date "+%Y-%m-%d %H:%M:%S")
 # 循环处理每个仓库
 for i in "${!GIT_URLS[@]}"; do
 
-  USERNAME = ${GIT_USERNAMES[i]}
-  EMAIL = ${GIT_EMAILS[i]}
-  PATH = repo-$USERNAME
+  USERNAME=${GIT_USERNAMES[i]}
   # 设置git配置
-  git config --global user.name "$USERNAME"
-  git config --global user.email "$EMAIL"
-
+  git config --global user.name "${USERNAME}"
+  git config --global user.email "${GIT_EMAILS[i]}"
 
   echo "开始处理仓库：${GIT_URLS[i]}"
 
+  REPO_DIR="/tmp/repo-${USERNAME}"
   # 克隆仓库
-  if [ ! -d "./$PATH" ]; then
-    git clone https://${GIT_TOKENS[i]}@${GIT_URLS[i]#https://} "$PATH"
-    refresh
+  if [ -d "${REPO_DIR}" ]; then
+    echo "目录 ${REPO_DIR} 已存在，跳过克隆操作"
+  else
+    git clone https://${GIT_TOKENS[i]}@${GIT_URLS[i]#https://} "${REPO_DIR}"
   fi
 
-  cd "$PATH"
-
+  cd "${REPO_DIR}"
+  
   # 创建或更新commit.txt文件
-  if [ -f ../commit.txt ]; then 
-    sed -i "1i提交时间： $DATE, 用户名： $USERNAME" ../commit.txt
+  if [ -f commit.txt ]; then 
+    sed -i "1i提交时间： $DATE, 用户名： ${USERNAME}" commit.txt
   else
-    echo 提交时间： $DATE, 用户名： $USERNAME >> ../commit.txt
+    echo 提交时间： $DATE, 用户名： ${USERNAME} >> commit.txt
+  fi
+
+  # 创建或更新commitAll.txt文件
+  if [ -f /app/commitAll.txt ]; then 
+    sed -i "1i提交时间： $DATE, 用户名： ${USERNAME}" /app/commitAll.txt
+  else
+    echo 提交时间： $DATE, 用户名： ${USERNAME} >> /app/commitAll.txt
   fi
 
   # 添加所有更改
@@ -44,11 +50,12 @@ for i in "${!GIT_URLS[@]}"; do
   # 推送更改
   git push origin main
 
-
   echo "仓库：${GIT_URLS[i]}处理完成"
+  
+  rm -rf $REPO_DIR
 
-  cd ..
-
+  cd ~/
+  
 done
 
 
