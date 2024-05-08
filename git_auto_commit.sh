@@ -12,6 +12,7 @@ for i in "${!GIT_URLS[@]}"; do
 
   USERNAME = ${GIT_USERNAMES[i]}
   EMAIL = ${GIT_EMAILS[i]}
+  PATH = repo-$USERNAME
   # 设置git配置
   git config --global user.name "$USERNAME"
   git config --global user.email "$EMAIL"
@@ -20,12 +21,12 @@ for i in "${!GIT_URLS[@]}"; do
   echo "开始处理仓库：${GIT_URLS[i]}"
 
   # 克隆仓库
-  if [ ! -d "./repo${i}" ]; then
-    git clone https://${GIT_TOKENS[i]}@${GIT_URLS[i]#https://} "repo${i}"
+  if [ ! -d "./$PATH" ]; then
+    git clone https://${GIT_TOKENS[i]}@${GIT_URLS[i]#https://} "$PATH"
     refresh
   fi
 
-  cd "repo${i}"
+  cd "$PATH"
 
   # 创建或更新commit.txt文件
   if [ -f ../commit.txt ]; then 
